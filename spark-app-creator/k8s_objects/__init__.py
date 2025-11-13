@@ -1,0 +1,1 @@
+from .base_k8s import BaseKubernetesObject
