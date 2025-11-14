@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-
+from datetime import datetime
 from k8s_objects import BaseKubernetesObject
 from kubernetes.client.models import (V1Affinity, V1Container, V1EnvFromSource,
                                       V1EnvVar, V1HostAlias, V1ObjectMeta,
@@ -191,8 +191,134 @@ class SparkAppSpec(BaseKubernetesObject):
         self.dynamic_allocation = dynamic_allocation
 
 
+ExecutorState = str
+
+
+class ExecutorStateEnum(Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    UNKNOWN = "UNKNOWN"
+
+
+class DriverInfo(BaseKubernetesObject):
+    openapi_types: dict[str, str] = {
+        "web_ui_service_name": "str",
+        "web_ui_port": "int",
+        "web_ui_address": "str",
+        "web_ui_ingress_name": "str",
+        "web_ui_ingress_address": "str",
+        "pod_name": "str"
+    }
+
+    attribute_map: dict[str, str] = {
+        "web_ui_service_name": "webUIServiceName",
+        "web_ui_port": "webUIPort",
+        "web_ui_address": "webUIAddress",
+        "web_ui_ingress_name": "webUIIngressName",
+        "web_ui_ingress_address": "webUIIngressAddress",
+        "pod_name": "podName"
+    }
+
+    def __init__(self,
+                 web_ui_service_name: str = None,
+                 web_ui_port: int = None,
+                 web_ui_address: str = None,
+                 web_ui_ingress_name: str = None,
+                 web_ui_ingress_address: str = None,
+                 pod_name: str = None):
+        """DriverInfo captures information about the driver."""
+        self.web_ui_service_name = web_ui_service_name
+        self.web_ui_port = web_ui_port
+        self.web_ui_address = web_ui_address
+        self.web_ui_ingress_name = web_ui_ingress_name
+        self.web_ui_ingress_address = web_ui_ingress_address
+        self.pod_name = pod_name
+
+
+class ApplicationState(BaseKubernetesObject):
+    openapi_types: dict[str, str] = {
+        "state": "ApplicationStateType",
+        "error_message": "str"
+    }
+
+    attribute_map: dict[str, str] = {
+        "state": "state",
+        "error_message": "errorMessage"
+    }
+
+    def __init__(self,
+                 state: ApplicationStateType = None,
+                 error_message: str = None):
+        """ApplicationState tells the current state of the application and an error message in case of failures."""
+        self.state = state
+        self.error_message = error_message
+
+
+ApplicationStateType = str
+
+
+class ApplicationStateTypeEnum(str, Enum):
+    NEW = ""
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    SUBMISSION_FAILED = "SUBMISSION_FAILED"
+    PENDING_RERUN = "PENDING_RERUN"
+    INVALIDATING = "INVALIDATING"
+    SUCCEEDING = "SUCCEEDING"
+    FAILING = "FAILING"
+    UNKNOWN = "UNKNOWN"
+
+
+
 class SparkAppStatus(BaseKubernetesObject):
-    pass
+    openapi_types: dict[str, str] = {
+        "spark_application_id": "str",
+        "submission_id": "str",
+        "last_submission_attempt_time": "datetime",
+        "termination_time": "datetime",
+        "driver_info": "DriverInfo",
+        "application_state": "ApplicationState",
+        "executor_state": "dict[str, ExecutorState]",
+        "execution_attempts": "int",
+        "submission_attempts": "int",
+    }
+
+    attribute_map: dict[str, str] = {
+        "spark_application_id": "sparkApplicationId",
+        "submission_id": "submissionID",
+        "last_submission_attempt_time": "lastSubmissionAttemptTime",
+        "termination_time": "terminationTime",
+        "driver_info": "driverInfo",
+        "application_state": "applicationState",
+        "executor_state": "executorState",
+        "execution_attempts": "executionAttempts",
+        "submission_attempts": "submissionAttempts",
+    }
+
+    def __init__(self,
+                 spark_application_id: str = None,
+                 submission_id: str = None,
+                 last_submission_attempt_time: datetime = None,
+                 termination_time: datetime = None,
+                 driver_info: DriverInfo = None,
+                 application_state: ApplicationState = None,
+                 executor_state: dict[str, ExecutorState] = None,
+                 execution_attempts: int = None,
+                 submission_attempts: int = None):
+        """SparkApplicationStatus describes the current status of a Spark application."""
+        self.spark_application_id = spark_application_id
+        self.submission_id = submission_id
+        self.last_submission_attempt_time = last_submission_attempt_time
+        self.termination_time = termination_time
+        self.driver_info = driver_info
+        self.application_state = application_state
+        self.executor_state = executor_state
+        self.execution_attempts = execution_attempts
+        self.submission_attempts = submission_attempts
 
 
 class SparkPodSpec(BaseKubernetesObject):
@@ -470,7 +596,7 @@ class RestartPolicy(BaseKubernetesObject):
         "on_failure_retry_interval": "int"
     }
 
-    attribute_map = {
+    attribute_map: dict[str, str] = {
         "type": "type",
         "on_submission_failure_retries": "onSubmissionFailureRetries",
         "on_failure_retries": "onFailureRetries",
@@ -496,7 +622,7 @@ class RestartPolicy(BaseKubernetesObject):
 
 
 class SparkMonitoringSpec(BaseKubernetesObject):
-    openapi_types = {
+    openapi_types: dict[str, str] = {
         "expose_driver_metrics": "bool",
         "expose_executor_metrics": "bool",
         "metrics_properties": "str",
@@ -504,7 +630,7 @@ class SparkMonitoringSpec(BaseKubernetesObject):
         "prometheus": "PrometheusSpec"
     }
 
-    attribute_map = {
+    attribute_map: dict[str, str] = {
         "expose_driver_metrics": "exposeDriverMetrics",
         "expose_executor_metrics": "exposeExecutorMetrics",
         "metrics_properties": "metricsProperties",
@@ -526,7 +652,7 @@ class SparkMonitoringSpec(BaseKubernetesObject):
         self.prometheus = prometheus
 
 class PrometheusSpec(BaseKubernetesObject):
-    openapi_types = {
+    openapi_types: dict[str, str] = {
         "jmx_exporter_jar": "str",
         "port": "int",
         "port_name": "int",
@@ -534,7 +660,7 @@ class PrometheusSpec(BaseKubernetesObject):
         "configuration": "str"
     }
 
-    attribute_map = {
+    attribute_map: dict[str, str] = {
         "jmx_exporter_jar": "jmxExporterJar",
         "port": "port",
         "port_name": "portName",
