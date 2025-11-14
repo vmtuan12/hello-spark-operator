@@ -1,4 +1,4 @@
-from k8s_objects import BaseKubernetesObject
+from src.k8s_objects import BaseKubernetesObject
 
 
 def test_k8s_object_to_dict():
