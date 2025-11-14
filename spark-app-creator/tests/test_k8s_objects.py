@@ -1,5 +1,6 @@
 from k8s_objects import BaseKubernetesObject
 
+
 def test_k8s_object_to_dict():
     class Dz(BaseKubernetesObject):
         openapi_types = {
