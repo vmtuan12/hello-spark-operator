@@ -1,10 +1,15 @@
 import logging
 from functools import cached_property
-
+from typing import Callable
 import kubernetes
+from abc import abstractmethod
 
 
 class BaseClient():
+    def __init__(self, hooks: list[Callable] = None) -> None:
+        self.hooks = hooks
+        
+
     @property
     def logger(self) -> logging.Logger:
         return self._setup_logger()
@@ -30,3 +35,12 @@ class BaseClient():
         kubernetes.config.load_incluster_config()
         return kubernetes.client.ApiClient()
 
+
+    @abstractmethod
+    def _execute_hooks(self):
+        raise Exception("Must override method `_execute_hooks` in %s.%s" % (self.__class__.__module__, self.__class__.__name__))
+
+
+    @abstractmethod
+    def _clean_up(self):
+        raise Exception("Must override method `_clean_up` in %s.%s" % (self.__class__.__module__, self.__class__.__name__))
