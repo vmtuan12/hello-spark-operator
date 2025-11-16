@@ -23,7 +23,7 @@ class BaseLauncher():
         return logging.getLogger(logger_name)
 
 
-    def read_pod_log(self, pod: V1Pod, tail_lines: int = 10) -> Iterator[bytes]:
+    def _read_pod_log(self, pod: V1Pod, tail_lines: int = 10) -> Iterator[bytes]:
         pod_metadata: V1ObjectMeta = pod.metadata
         pod_namespace = pod_metadata.namespace
         pod_name = pod_metadata.name

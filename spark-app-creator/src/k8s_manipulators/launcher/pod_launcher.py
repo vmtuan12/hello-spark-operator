@@ -7,6 +7,8 @@ from kubernetes.client.api_client import ApiClient
 from kubernetes.client.models import V1ObjectMeta, V1Pod
 from kubernetes.client.rest import ApiException
 from urllib3.exceptions import ConnectionError, IncompleteRead, ProtocolError
+from utils.k8s_utils import get_pod_status_phase, PodStatusPhaseEnum as PodStatusPhase, PodEventTypeEnum as PodEventType
+from custom_exceptions import PodFailedException, ResourceObjectNotFoundException, PermissionDeniedException
 
 
 class PodLauncher(BaseLauncher):
@@ -30,18 +32,48 @@ class PodLauncher(BaseLauncher):
 
 
     def monitor_pod(self, pod: V1Pod) -> None:
-        for yielded_pod in self.monitor_pod_status(pod=pod):
+        for yielded_pod in self._monitor_pod_status(pod=pod):
             yielded_pod_metadata: V1ObjectMeta = yielded_pod.metadata
             yielded_pod_namespace = yielded_pod_metadata.namespace
             yielded_pod_name = yielded_pod_metadata.name
 
-            for line in self.read_pod_log(pod=yielded_pod):
-                self.logger.info("Pod %s - Namespace %s | %s" % (yielded_pod_name, yielded_pod_namespace, line.decode().strip()))
+            log_prefix = "Pod %s - Namespace %s" % (yielded_pod_name, yielded_pod_namespace)
 
-        self.logger.info("Pod %s - Namespace %s | Finished!" % (yielded_pod_name, yielded_pod_namespace))
+            for line in self._read_pod_log(pod=yielded_pod):
+                self.logger.info("%s | %s" % (log_prefix, line.decode().strip()))
+
+            phase = get_pod_status_phase(pod=yielded_pod)
+            if phase == PodStatusPhase.FAILED.value:
+                self.logger.info("%s | Pod failed!" % log_prefix)
+                raise PodFailedException()
+
+        self.logger.info("%s | Finished monitoring!" % log_prefix)
 
 
-    def monitor_pod_status(self, pod: V1Pod) -> Generator[V1Pod, None, None]:
+    def delete_pod(self, pod: V1Pod, **kwargs) -> None:
+        pod_metadata: V1ObjectMeta = pod.metadata
+        pod_namespace = pod_metadata.namespace
+        pod_name = pod_metadata.name
+        
+        try:
+            self.core_v1_api.delete_namespaced_pod(name=pod_name, namespace=pod_namespace, **kwargs)
+            self.logger.info("Deleted pod %s in namespaced %s successfully" % (pod_name, pod_namespace))
+        except ApiException as e:
+            if e.status == 404:
+                raise ResourceObjectNotFoundException(
+                    resource_type="pod", 
+                    message="Pod %s in namespaced %s - not found" % (pod_name, pod_namespace)
+                )
+            
+            if e.status == 403:
+                raise PermissionDeniedException(
+                    "Do not have enough permission to delete pod %s in namespace %s" % (pod_name, pod_namespace)
+                )
+            
+            raise e
+
+
+    def _monitor_pod_status(self, pod: V1Pod) -> Generator[V1Pod, None, None]:
         pod_metadata: V1ObjectMeta = pod.metadata
         pod_namespace = pod_metadata.namespace
         pod_name = pod_metadata.name
@@ -55,15 +87,17 @@ class PodLauncher(BaseLauncher):
                     field_selector=f"metadata.name={pod_name}",
                 ):
                     event_type = event['type']
-                    pod_obj = event["object"]
-                    phase = pod.status.phase
+                    pod_obj: V1Pod = event["object"]
+                    phase = get_pod_status_phase(pod=pod_obj)
 
                     self.logger.info(
                         "Pod %s - Namespace %s | Event type: %s - Phase: " % (
                         event['object'].metadata.name, event['object'].metadata.namespace, event_type, phase
                     ))
 
-                    if phase in ("Succeeded", "Failed") or event_type in ("DELETE", "ERROR"):
+                    if (phase in (PodStatusPhase.FAILED.value, PodStatusPhase.SUCCEEDED.value) or 
+                        event_type in (PodEventType.DELETE.value, PodEventType.ERROR.value)):
+                        yield pod_obj
                         return
 
                     yield pod_obj
