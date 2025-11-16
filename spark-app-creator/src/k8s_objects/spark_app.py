@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+
 from k8s_objects import BaseKubernetesObject
 from kubernetes.client.models import (V1Affinity, V1Container, V1EnvFromSource,
-                                      V1EnvVar, V1HostAlias, V1ObjectMeta,
+                                      V1EnvVar, V1HostAlias, V1IngressTLS,
+                                      V1Lifecycle, V1ObjectMeta,
                                       V1PodDNSConfig, V1PodSecurityContext,
                                       V1SecurityContext, V1Toleration,
-                                      V1Volume, V1VolumeMount, V1Lifecycle, V1IngressTLS)
-
+                                      V1Volume, V1VolumeMount)
 
 # region enum_alias
 ApplicationStateType = str

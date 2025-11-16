@@ -1,7 +1,8 @@
-import kubernetes
+import logging
 from functools import cached_property
 
-import logging
+import kubernetes
+
 
 class BaseClient():
     @property

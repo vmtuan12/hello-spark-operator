@@ -1,6 +1,7 @@
 import logging
 from typing import Literal
 
+
 def setup_logging(level=logging.INFO) -> None:
     logging.basicConfig(
         level=level,
