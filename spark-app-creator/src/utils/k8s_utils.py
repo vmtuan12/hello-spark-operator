@@ -17,6 +17,7 @@ class PodStatusPhaseEnum(Enum):
     RUNNING = "Running"
     FAILED = "Failed"
     SUCCEEDED = "Succeeded"
+    PENDING = "Pending"
 
 class PodEventTypeEnum(Enum):
     ADDED = "ADDED"

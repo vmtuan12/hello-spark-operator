@@ -38,11 +38,14 @@ class PodLauncher(BaseLauncher):
             yielded_pod_name = yielded_pod_metadata.name
 
             log_prefix = "Pod %s - Namespace %s" % (yielded_pod_name, yielded_pod_namespace)
+            phase = get_pod_status_phase(pod=yielded_pod)
+
+            if phase not in (PodStatusPhase.RUNNING.value, PodStatusPhase.SUCCEEDED.value, PodStatusPhase.FAILED.value):
+                continue
 
             for line in self._read_pod_log(pod=yielded_pod):
                 self.logger.info("%s | %s" % (log_prefix, line.decode().strip()))
 
-            phase = get_pod_status_phase(pod=yielded_pod)
             if phase == PodStatusPhase.FAILED.value:
                 self.logger.info("%s | Pod failed!" % log_prefix)
                 raise PodFailedException()
@@ -91,7 +94,7 @@ class PodLauncher(BaseLauncher):
                     phase = get_pod_status_phase(pod=pod_obj)
 
                     self.logger.info(
-                        "Pod %s - Namespace %s | Event type: %s - Phase: " % (
+                        "Pod %s - Namespace %s | Event type: %s - Phase: %s" % (
                         event['object'].metadata.name, event['object'].metadata.namespace, event_type, phase
                     ))
 
