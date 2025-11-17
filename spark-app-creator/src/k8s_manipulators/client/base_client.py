@@ -6,9 +6,10 @@ from abc import abstractmethod
 
 
 class BaseClient():
-    def __init__(self, hooks: list[Callable] = None) -> None:
+    def __init__(self, hooks: list[Callable] = None, is_client_outside_cluster: bool = False, context: str = None) -> None:
         self.hooks = hooks
-        
+        self.is_client_outside_cluster = is_client_outside_cluster
+        self.context = context
 
     @property
     def logger(self) -> logging.Logger:
@@ -32,7 +33,14 @@ class BaseClient():
         """
         Override this function if you need to customize the api client
         """
-        kubernetes.config.load_incluster_config()
+        if self.is_client_outside_cluster:
+            if self.context is None:
+                raise ValueError("context cannot be None when is_client_outside_cluster == True")
+            kubernetes.config.load_kube_config(context=self.context)
+
+        else:
+            kubernetes.config.load_incluster_config()
+
         return kubernetes.client.ApiClient()
 
 
