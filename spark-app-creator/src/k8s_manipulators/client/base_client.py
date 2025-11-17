@@ -1,8 +1,9 @@
 import logging
+from abc import abstractmethod
 from functools import cached_property
 from typing import Callable
+
 import kubernetes
-from abc import abstractmethod
 
 
 class BaseClient():
