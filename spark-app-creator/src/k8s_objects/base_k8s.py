@@ -1,4 +1,5 @@
 from typing import Any
+import pprint
 
 
 class BaseKubernetesObject:
@@ -18,6 +19,10 @@ class BaseKubernetesObject:
 
         for attr, attr_type in self.openapi_types.items():
             value = getattr(self, attr)
+            
+            if value is None:
+                continue
+
             if isinstance(value, list):
                 result[attr] = list(
                     map(lambda x: x.to_dict() if hasattr(x, "to_dict") else x, value)
@@ -35,3 +40,8 @@ class BaseKubernetesObject:
                 result[attr] = value
 
         return result
+
+
+    def __repr__(self):
+        return pprint.pformat(self.to_dict())
+    

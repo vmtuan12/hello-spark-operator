@@ -82,11 +82,11 @@ class SparkApp(BaseKubernetesObject):
 
     def __init__(
         self,
-        api_version: str,
-        kind: str,
-        metadata: V1ObjectMeta,
-        spec: SparkAppSpec,
-        status: SparkAppStatus,
+        api_version: str = None,
+        kind: str = None,
+        metadata: V1ObjectMeta = None,
+        spec: SparkAppSpec = None,
+        status: SparkAppStatus = None,
     ) -> None:
         self.api_version = api_version
         self.kind = kind
@@ -370,8 +370,8 @@ class SparkExecutorSpec(SparkPodSpec):
     }
 
     def __init__(self, 
-                 instances: int,
-                 delete_on_termination: bool,
+                 instances: int = None,
+                 delete_on_termination: bool = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.instances = instances
@@ -396,10 +396,10 @@ class SparkDriverSpec(SparkPodSpec):
     }
 
     def __init__(self, 
-                 pod_name: str,
-                 lifecycle: V1Lifecycle,
-                 kubernetes_master: str,
-                 service_annotations: dict[str, str],
+                 pod_name: str = None,
+                 lifecycle: V1Lifecycle = None,
+                 kubernetes_master: str = None,
+                 service_annotations: dict[str, str] = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.pod_name = pod_name
