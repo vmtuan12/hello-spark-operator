@@ -85,6 +85,7 @@ class PodLauncher(BaseLauncher):
         pod_name = pod_metadata.name
 
         _w = kubernetes.watch.Watch()
+        connection_retry_attempt = 0
         while True:
             try:
                 for event in _w.stream(
