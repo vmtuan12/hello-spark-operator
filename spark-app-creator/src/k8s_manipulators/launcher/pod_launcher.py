@@ -24,14 +24,14 @@ class PodLauncher(BaseLauncher):
         else:
             body = pod
 
-        self.logger.info("Creating pod in namespace %s ..." % namespace)
+        self.logger.info("Creating pod %s in namespace %s ..." % (pod.metadata.name, namespace))
 
         self.core_v1_api.create_namespaced_pod(
             namespace=namespace,
             body=body,
         )
 
-        self.logger.info("Finished creating pod in namespace %s." % namespace)
+        self.logger.info("Finished creating pod %s in namespace %s." % (pod.metadata.name, namespace))
 
 
     def monitor_pod(self, pod: V1Pod) -> None:
