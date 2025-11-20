@@ -1,6 +1,11 @@
 class PodFailedException(Exception):
     pass
 
+class SparkAppFailedException(Exception):
+    pass
+
+class SparkAppSubmissionFailedException(Exception):
+    pass
 
 class PermissionDeniedException(Exception):
     pass

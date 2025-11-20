@@ -10,7 +10,6 @@ import six
 from dateutil.parser import parse
 from kubernetes.client import rest
 from kubernetes.client.models import V1Pod, V1Status
-from six.moves.urllib.parse import quote
 
 
 class PodStatusPhaseEnum(Enum):
@@ -24,6 +23,18 @@ class PodEventTypeEnum(Enum):
     MODIFIED = "MODIFIED"
     DELETE = "DELETE"
     ERROR = "ERROR"
+
+class SparkApplicationStateEnum(str, Enum):
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    FAILING = "FAILING"
+    SUCCEEDING = "SUCCEEDING"
+    SUBMISSION_FAILED = "SUBMISSION_FAILED"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
+    PENDING_RERUN = "PENDING_RERUN"
+    INVALIDATING = "INVALIDATING"
+    UNKNOWN = "UNKNOWN"
 
 def get_pod_status_phase(pod: V1Pod):
     status: V1Status = pod.status
@@ -93,8 +104,8 @@ class MyDeserializer():
                 return [self.__deserialize(sub_data, sub_kls)
                         for sub_data in data]
 
-            if klass.startswith('dict('):
-                sub_kls = re.match(r'dict\(([^,]*), (.*)\)', klass).group(2)
+            if klass.startswith('dict['):
+                sub_kls = re.match(r'dict\[\s*([^,\]]*)\s*,\s*([^\]]*)\s*\]', klass).group(2)
                 return {k: self.__deserialize(v, sub_kls)
                         for k, v in six.iteritems(data)}
 
@@ -106,6 +117,7 @@ class MyDeserializer():
             elif hasattr(self.custom_module, klass) and self.custom_module is not None:
                 klass = getattr(self.custom_module, klass)
             else:
+                print(klass)
                 raise Exception("Cannot deserialize")
 
         if klass in self.PRIMITIVE_TYPES:
